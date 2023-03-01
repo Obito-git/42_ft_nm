@@ -41,8 +41,22 @@ int	ft_printf(const char *s, ...)
 
 	cpy = ft_strdup(s);
 	va_start(args, s);
-	len = parse(&args, cpy);
+	len = parse(STDOUT_FILENO, &args, cpy);
 	va_end(args);
 	free(cpy);
 	return (len);
+}
+
+int	ft_fprintf(int fd, const char *s, ...)
+{
+    va_list	args;
+    size_t	len;
+    char	*cpy;
+
+    cpy = ft_strdup(s);
+    va_start(args, s);
+    len = parse(fd, &args, cpy);
+    va_end(args);
+    free(cpy);
+    return (len);
 }

@@ -17,22 +17,22 @@ static int	ispattern(char c)
 		|| c == 'i' || c == 'u' || c == 'x' || c == 'X');
 }
 
-static size_t	find_pattern(t_arg	*ar)
+static size_t	find_pattern(t_arg	*ar, int fd)
 {
 	if (ar->type == 'd' || ar->type == 'i')
-		return (d_pattern(ar));
+		return (d_pattern(ar, fd));
 	if (ar->type == 's' || ar->type == 'c')
-		return (s_pattern(ar));
+		return (s_pattern(ar, fd));
 	if (ar->type == 'p')
-		return (p_pattern(ar));
+		return (p_pattern(ar, fd));
 	if (ar->type == 'u')
-		return (u_pattern(ar));
+		return (u_pattern(ar, fd));
 	if (ar->type == 'x' || ar->type == 'X')
-		return (xx_pattern(ar));
+		return (xx_pattern(ar, fd));
 	return (0);
 }
 
-size_t	print_pattern(char type, void *var_content)
+size_t	print_pattern(char type, void *var_content, int fd)
 {
 	t_arg	*ar;
 
@@ -41,7 +41,7 @@ size_t	print_pattern(char type, void *var_content)
 		return (0);
 	ar->type = type;
 	ar->content = var_content;
-	return (find_pattern(ar));
+	return (find_pattern(ar, fd));
 }
 
 void	*parse_content(va_list *ar, char type)
@@ -71,7 +71,7 @@ void	*parse_content(va_list *ar, char type)
 	return (NULL);
 }
 
-size_t	parse(va_list	*ar, char *str)
+size_t	parse(int fd, va_list	*ar, char *str)
 {
 	size_t	i;
 	size_t	printed_chars;
@@ -83,13 +83,13 @@ size_t	parse(va_list	*ar, char *str)
 		if (str[i] == '%' && ispattern(str[i + 1]))
 		{
 			printed_chars += print_pattern(str[i + 1],
-					parse_content(ar, str[i + 1]));
+					parse_content(ar, str[i + 1]), fd);
 			i += 2;
 			continue ;
 		}
 		if (str[i] == '%' && str[i + 1] == '%')
 			i++;
-		ft_putchar(str[i]);
+		ft_putchar_fd(str[i], fd);
 		printed_chars++;
 		i++;
 	}

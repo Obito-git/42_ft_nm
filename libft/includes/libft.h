@@ -52,6 +52,7 @@ void	ft_putnbr(long n);
 void	ft_putnbr_fd(long n, int fd);
 void	ft_putnbr_base(int nbr, char *base);
 int		ft_printf(const char *s, ...);
+int		ft_fprintf(int fd, const char *s, ...);
 /* string/ */
 char	*ft_strchr(const char *str, int c);
 char	*ft_strrchr(const char *str, int c);
