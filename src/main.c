@@ -7,16 +7,25 @@ int main(int ac, char **av) {
     }
 
     char *filename = ac == 1 ? "a.out" : av[1];
-    file_details details;
+    file_details_t details;
 
-    int res = fillDetails(filename, &details);
+    int res = parseFileToDetails(filename, &details);
     if (res != 0)
         return res;
     printf("addr %p\n", details.file_start);
     printf("file size %ldl\n", details.buf.st_size);
     printf("file fd %d\n", details.fd);
 
-    parseFile(&details);
+    fillHeadersAndSymbolTable(&details);
+
+    Elf64_Sym *sym = details.table_det.symtab;
+    for (size_t i = 0; i < details.table_det.symsize / sizeof(Elf64_Sym); i++, sym++) {
+        if (ELF64_ST_TYPE(sym->st_info) == STT_FUNC || ELF64_ST_TYPE(sym->st_info) == STT_OBJECT) {
+            printf("  %03zu:\t%016lx\t%s\t\t%s\n", i, sym->st_value,
+                   ELF64_ST_TYPE(sym->st_info) == STT_FUNC ? "FUNC" : "OBJECT",
+                   details.table_det.strtab + sym->st_name);
+        }
+    }
 
 
 

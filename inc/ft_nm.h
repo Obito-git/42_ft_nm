@@ -12,15 +12,30 @@
 
 #define MIN_ELF_BYTES 6
 
+typedef struct table_details {
+    bool is64bit;
+    Elf32_Shdr *symbHdr32;
+    Elf64_Shdr *symbHdr64;
+    void *symtab;
+    size_t symsize;
+    char *strtab;
+    size_t strsize;
+} table_details_t;
+
 typedef struct file_details {
     int fd;
     void *file_start;
     struct stat buf;
-} file_details;
+    Elf32_Ehdr *ehdr32;
+    Elf64_Ehdr *ehdr64;
+    table_details_t table_det;
+} file_details_t;
+
+
 
 /* file_manip.c */
-int fillDetails(char *filename, file_details *details);
-void parseFile(file_details *details);
+int parseFileToDetails(char *filename, file_details_t *details);
+void fillHeadersAndSymbolTable(file_details_t *details);
 
 /* errors.c */
 int handle_error(char *msg, int error_code);
