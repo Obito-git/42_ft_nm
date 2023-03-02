@@ -31,6 +31,7 @@ int fillDetails(char *filename, file_details *details) {
         return handle_error(ERRMSG_MMAP, errno);
     }
     return 0;
+
 }
 
 void parseFile(file_details *details) {
