@@ -30,7 +30,6 @@ int fillDetails(char *filename, file_details *details) {
                                     0)) == MAP_FAILED) {
         return handle_error(ERRMSG_MMAP, errno);
     }
-
     return 0;
 }
 
