@@ -1,7 +1,3 @@
-//
-// Created by Anton on 24/02/2023.
-//
-
 #ifndef FT_NM_H
 #define FT_NM_H
 
@@ -14,7 +10,7 @@
 #include <sys/mman.h>
 #include <stdio.h> //FIXME DELETE
 
-#define ELF_MAGIC 0x464C457F
+#define MIN_ELF_BYTES 6
 
 typedef struct file_details {
     int fd;
@@ -22,6 +18,12 @@ typedef struct file_details {
     struct stat buf;
 } file_details;
 
-int setFileInfo(char *filename, file_details *details);
+/* file_manip.c */
+int fillDetails(char *filename, file_details *details);
+void parseFile(file_details *details);
+
+/* errors.c */
+int handle_error(char *msg, int error_code);
+int handle_error_prefix(char *msg, char *prefixMsg, int error_code);
 
 #endif //FT_NM_H
