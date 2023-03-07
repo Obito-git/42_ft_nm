@@ -38,17 +38,19 @@ int parseFileToDetails(char *filename, file_details_t *details) {
  *
  * @argument details is struct defined in ft_nm.h
  * @argument secNumb elf header section number
- * @argument symbHdr32 is pointer on 32bit section header
+ * @argument sectionHdr32 is pointer on 32bit section header
  * @return //FIXME add return (error case)
  */
-void fillSymbolTable32(file_details_t *details, uint16_t secNumb, Elf32_Shdr *symbHdr32) {
+static void fillSymbolTable32(file_details_t *details) {
     table_details_t *table_det = &details->table_det;
-    for (int i = 0; i < secNumb; i++) {
-        if (symbHdr32[i].sh_type == SHT_SYMTAB) {
-            table_det->symtab = details->file_start + symbHdr32[i].sh_offset;
-            table_det->symsize = symbHdr32[i].sh_size;
-            table_det->strtab = (char *) (details->file_start + symbHdr32[symbHdr32[i].sh_link].sh_offset);
-            //table_det->strsize = symbHdr32[symbHdr32[i].sh_link].sh_size;
+
+    for (int i = 0; i < details->ehdr32->e_shnum; i++) {
+        if (details->shdr32[i].sh_type == SHT_SYMTAB) {
+            table_det->symtab = details->file_start + details->shdr32[i].sh_offset;
+            table_det->symsize = details->shdr32[i].sh_size;
+            table_det->strtab = (char *) (details->file_start + details->shdr32[details->shdr32[i].sh_link].sh_offset);
+            table_det->symbols_number = table_det->symsize / sizeof(Elf32_Sym);
+            //table_det->strsize = details->shdr32[details->shdr32[i].sh_link].sh_size;
             break;
         }
         //FIXME error_handling
@@ -60,17 +62,19 @@ void fillSymbolTable32(file_details_t *details, uint16_t secNumb, Elf32_Shdr *sy
  *
  * @argument details is struct defined in ft_nm.h
  * @argument secNumb elf header section number
- * @argument symbHdr64 is pointer on 64bit section header
+ * @argument sectionHdr64 is pointer on 64bit section header
  * @return //FIXME add return (error case)
  */
-void fillSymbolTable64(file_details_t *details, uint16_t secNumb, Elf64_Shdr *symbHdr64) {
+static void fillSymbolTable64(file_details_t *details) {
     table_details_t *table_det = &details->table_det;
-    for (int i = 0; i < secNumb; i++) {
-        if (symbHdr64[i].sh_type == SHT_SYMTAB) {
-            table_det->symtab = details->file_start + symbHdr64[i].sh_offset;
-            table_det->symsize = symbHdr64[i].sh_size;
-            table_det->strtab = (char *) (details->file_start + symbHdr64[symbHdr64[i].sh_link].sh_offset);
-            //table_det->strsize = symbHdr64[symbHdr64[i].sh_link].sh_size;
+
+    for (int i = 0; i < details->ehdr64->e_shnum; i++) {
+        if (details->shdr64[i].sh_type == SHT_SYMTAB) {
+            table_det->symtab = details->file_start + details->shdr64[i].sh_offset;
+            table_det->symsize = details->shdr64[i].sh_size;
+            table_det->strtab = (char *) (details->file_start + details->shdr64[details->shdr64[i].sh_link].sh_offset);
+            table_det->symbols_number = table_det->symsize / sizeof(Elf64_Sym);
+            //table_det->strsize = details->shdr64[details->shdr64[i].sh_link].sh_size;
             break;
         }
         //FIXME error_handling
@@ -93,15 +97,18 @@ void fillHeadersAndSymbolTable(file_details_t *details) {
     if (ptr[0] == ELFMAG0 && ptr[1] == ELFMAG1
         && ptr[2] == ELFMAG2 && ptr[3] == ELFMAG3) {
 
-        Elf32_Ehdr *ehdr32 = (Elf32_Ehdr *) ptr;
-        Elf64_Ehdr *ehdr64 = (Elf64_Ehdr *) ptr;
+        Elf32_Ehdr *ehdr32 = details->ehdr32 = (Elf32_Ehdr *) ptr;
+        Elf64_Ehdr *ehdr64 = details->ehdr64 = (Elf64_Ehdr *) ptr;
+
+        details->shdr32 = (Elf32_Shdr *) (ptr + ehdr32->e_shoff);
+        details->shdr64 = (Elf64_Shdr *) (ptr + ehdr64->e_shoff);
 
         if (ehdr32->e_ident[EI_CLASS] == ELFCLASS32) {
-            fillSymbolTable32(details, ehdr32->e_shnum, (Elf32_Shdr *) (ptr + ehdr32->e_shoff));
+            fillSymbolTable32(details);
             details->table_det.is64bit = false;
             ft_printf("32 bit elf binary\n"); //FIXME delete
         } else if (ehdr64->e_ident[EI_CLASS] == ELFCLASS64) {
-            fillSymbolTable64(details, ehdr64->e_shnum, (Elf64_Shdr *) (ptr + ehdr64->e_shoff));
+            fillSymbolTable64(details);
             details->table_det.is64bit = true;
             ft_printf("64 bit elf binary\n"); //FIXME delete
         } else {
