@@ -2,7 +2,8 @@ NAME = ft_nm
 CC = gcc
 CFLAGS = -Wall -Werror -Wextra -g3 -Ilibft/includes -Iinc
 SRC_PATH=src/
-SRCS = $(SRC_PATH)main.c  $(SRC_PATH)file_details.c $(SRC_PATH)errors.c $(SRC_PATH)print_result.c $(SRC_PATH)symbol.c
+SRCS = $(SRC_PATH)main.c $(SRC_PATH)errors.c \
+	$(SRC_PATH)print_result.c $(SRC_PATH)symbol.c $(SRC_PATH)handle_64.c $(SRC_PATH)handle_32.c
 LIBFT_PATH = libft/
 LIBFT_NAME = libft.a
 OBJ/OBJECTS		=	$(patsubst %.c, obj/%.o, $(SRCS))

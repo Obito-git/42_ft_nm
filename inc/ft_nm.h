@@ -36,7 +36,8 @@ typedef struct symbol {
     unsigned char	st_info;		/* Symbol type and binding */
     uint64_t st_value;
     void *section;
-    char section_name[100];
+    //char section_name[100];
+    char *symbol_name;
 } symbol_t;
 
 typedef struct file_details {
@@ -50,10 +51,6 @@ typedef struct file_details {
     table_details_t table_det;
 } file_details_t;
 
-/* file_manip.c */
-int parseFileToDetails(char *filename, file_details_t *details);
-void fillHeadersAndSymbolTable(file_details_t *details);
-
 /* errors.c */
 int handle_error(char *msg, int error_code);
 int handle_error_prefix(char *msg, char *prefixMsg, int error_code);
@@ -63,8 +60,17 @@ char get_symbol_type(int symtype, int symbind, int symvis);
 void print_details(file_details_t *details);
 
 /* symbol.c */
-void setSymbolDetails(file_details_t *details, symbol_t *sym_det);
-bool isLegalSymbolTableType(table_details_t *table_det, symbol_t *sym_det);
-void symbolSort(symbol_t arr[], int low, int high);
+bool isLegalSymbolTableType(const table_details_t *table_det, const symbol_t *sym_det);
+size_t readSymbolTable(symbol_t *symbols, file_details_t *details);
+
+/* handle_32.c */
+void fillSymbolTable32(file_details_t *details);
+void setSymbolDetails32(file_details_t *details, symbol_t *sym_det);
+
+/* handle_64.c */
+void fillSymbolTable64(file_details_t *details);
+void setSymbolDetails64(file_details_t *details, symbol_t *sym_det);
 
 #endif //FT_NM_H
+
+

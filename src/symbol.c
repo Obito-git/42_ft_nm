@@ -1,6 +1,6 @@
 #include "ft_nm.h"
 
-void symbolSort(symbol_t arr[], int low, int high) {
+static void symbolSort(symbol_t arr[], int low, int high) {
     int pivot, i, j;
     symbol_t temp;
     if (low < high) {
@@ -8,10 +8,10 @@ void symbolSort(symbol_t arr[], int low, int high) {
         i = low;
         j = high;
         while (i < j) {
-            while (ft_strcmp(arr[i].section_name, arr[pivot].section_name) <= 0  && i <= high) {
+            while (ft_strcmp_ignore_case(arr[i].symbol_name, arr[pivot].symbol_name) <= 0  && i <= high) {
                 i++;
             }
-            while (ft_strcmp(arr[j].section_name, arr[pivot].section_name) > 0  && j >= low) {
+            while (ft_strcmp_ignore_case(arr[j].symbol_name, arr[pivot].symbol_name) > 0  && j >= low) {
                 j--;
             }
             if (i < j) {
@@ -28,38 +28,21 @@ void symbolSort(symbol_t arr[], int low, int high) {
     }
 }
 
-void setSymbolDetails(file_details_t *details, symbol_t *sym_det) {
+size_t readSymbolTable(symbol_t *symbols, file_details_t *details) {
+    size_t addedSymbols = 0;
 
-        if (details->table_det.is64bit) {
-            Elf64_Sym *sym = details->table_det.symtab;
-            sym_det->st_name = sym->st_name;
-            sym_det->st_info = sym->st_info;
-            sym_det->st_value = sym->st_value;
-
-            if (isLegalSymbolTableType(&details->table_det, sym_det)) {
-                sym_det->section = &details->shdr64[sym->st_shndx];
-                Elf64_Shdr *strtab_shdr = &details->shdr64[((Elf64_Ehdr *) details->file_start)->e_shstrndx];
-                char *strtab = (char *) (details->file_start + strtab_shdr->sh_offset);
-                ft_strcpy(sym_det->section_name, strtab + ((Elf64_Shdr *) sym_det->section)->sh_name);
-            }
-
-
-
-            details->table_det.symtab += sizeof(Elf64_Sym);
-            return;
+    for (size_t i = 0; i < details->table_det.symbols_number; i++) {
+        symbol_t sym;
+        details->table_det.is64bit ? setSymbolDetails64(details, &sym) : setSymbolDetails32(details, &sym);
+        if (isLegalSymbolTableType(&details->table_det, &sym)) {
+            symbols[addedSymbols++] = sym;
         }
-        /*
-        Elf32_Sym *sym = table_det->symtab;
-        sym_det->st_name = sym->st_name;
-        sym_det->st_info = sym->st_info;
-        sym_det->st_value = sym->st_value;
-        sym_det->st_shndx = sym->st_shndx;
-        table_det->symtab += sizeof(Elf32_Sym);
-         */
+    }
+    symbolSort(symbols, 0, (int) addedSymbols - 1);
+    return addedSymbols;
 }
 
-
-bool isLegalSymbolTableType(table_details_t *table_det, symbol_t *sym_det) {
+bool isLegalSymbolTableType(const table_details_t *table_det, const symbol_t *sym_det) {
     if (table_det->is64bit)
         return (ELF64_ST_TYPE(sym_det->st_info) == STT_FUNC ||
                 ELF64_ST_TYPE(sym_det->st_info) == STT_OBJECT ||
