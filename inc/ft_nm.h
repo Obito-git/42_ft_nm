@@ -32,12 +32,18 @@ typedef struct table_details {
 } table_details_t;
 
 typedef struct symbol {
-    int64_t st_name;
-    unsigned char	st_info;		/* Symbol type and binding */
-    uint64_t st_value;
-    void *section;
+    int64_t         st_name;        /* Symbol name (string tbl index) */
+    unsigned char   st_info;		/* Symbol type and binding */
+    uint64_t        st_value;       /* Symbol value */
+    unsigned char   st_bind;
+    uint16_t        st_shndx;       /* Section index */
+
+    uint32_t        sh_type;        /* Section type */
+    uint32_t        sh_flags;
+    char            *symbol_name;
+
+    //void            *section;
     //char section_name[100];
-    char *symbol_name;
 } symbol_t;
 
 typedef struct file_details {
@@ -56,12 +62,12 @@ int handle_error(char *msg, int error_code);
 int handle_error_prefix(char *msg, char *prefixMsg, int error_code);
 
 /* print_result.c */
-char get_symbol_type(int symtype, int symbind, int symvis);
 void print_details(file_details_t *details);
 
 /* symbol.c */
 bool isLegalSymbolTableType(const table_details_t *table_det, const symbol_t *sym_det);
 size_t readSymbolTable(symbol_t *symbols, file_details_t *details);
+char get_symbol_type(const symbol_t *sym);
 
 /* handle_32.c */
 void fillSymbolTable32(file_details_t *details);

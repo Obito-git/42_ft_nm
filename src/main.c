@@ -97,8 +97,7 @@ int main(int ac, char **av) {
 
     for (size_t i = 0; i < addedSymbols; i++) {
         printf("  %03zu:\t%016lx\t%c\t\t%-40s\n", i, symbols[i].st_value,
-               get_symbol_type(ELF64_ST_TYPE(symbols[i].st_info), ELF64_ST_BIND(symbols[i].st_info),
-                               ELF64_ST_VISIBILITY(symbols[i].st_info)),
+               get_symbol_type(&symbols[i]),
                details.table_det.strtab + symbols[i].st_name);
     }
 

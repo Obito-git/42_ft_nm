@@ -31,10 +31,16 @@ void setSymbolDetails32(file_details_t *details, symbol_t *sym_det) {
         sym_det->st_name = sym->st_name;
         sym_det->st_info = sym->st_info;
         sym_det->st_value = sym->st_value;
+        sym_det->st_shndx = sym->st_shndx;
 
         if (isLegalSymbolTableType(&details->table_det, sym_det)) {
             sym_det->symbol_name = ft_strdup(details->table_det.strtab + sym_det->st_name);
-            sym_det->section = &details->shdr32[sym->st_shndx];
+            Elf32_Shdr *shdr32= &details->shdr32[sym->st_shndx];
+            sym_det->sh_flags = shdr32->sh_flags;
+            sym_det->st_bind = ELF64_ST_BIND(sym->st_info);
+            sym_det->sh_type = shdr32->sh_type;
+            
+            //sym_det->section = &details->shdr32[sym->st_shndx];
             //Elf32_Shdr *strtab_shdr = &details->shdr32[((Elf32_Ehdr *) details->file_start)->e_shstrndx];
             //char *strtab = (char *) (details->file_start + strtab_shdr->sh_offset);
             //ft_strcpy(sym_det->section_name, strtab + ((Elf32_Shdr *) sym_det->section)->sh_name);
