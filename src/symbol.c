@@ -38,7 +38,8 @@ size_t readSymbolTable(symbol_t *symbols, file_details_t *details) {
             symbols[addedSymbols++] = sym;
         }
     }
-    symbolSort(symbols, 0, (int) addedSymbols - 1);
+    if (addedSymbols > 0)
+        symbolSort(symbols, 0, (int) addedSymbols - 1);
     return addedSymbols;
 }
 
