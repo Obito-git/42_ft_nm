@@ -1,114 +1,126 @@
 #include "ft_nm.h"
 
-/*
- * Function is filling file_details_t structure
- * @argument filename is name of file
- * @argument details is struct defined in ft_nm.h
- * is where we will save file fd, file stat and pointer in file start
- * @return errno if an error occurred otherwise returns 0
- */
-static int parseFileToDetails(char *filename, file_details_t *details) {
-    if (details == NULL)
-        return EINVAL;
-    if ((details->fd = open(filename, O_RDONLY)) < 0)
-        return handle_error_prefix(ERRMSG_OPEN_FILE, filename, errno);
+static int openFile(char *filename, int *fd, void **file_start, struct stat *stat) {
+    if ((*fd = open(filename, O_RDONLY)) < 0)
+        return handle_error_prefix(ERRMSG_OPEN_FILE, filename, EXIT_FAILURE);
 
-    if ((fstat(details->fd, &details->file_stat)) < 0)
-        return handle_error(ERRMSG_FSTAT, errno);
+    if ((fstat(*fd, stat)) < 0)
+        return handle_error(ERRMSG_FSTAT, EXIT_FAILURE);
 
-    if (S_ISDIR(details->file_stat.st_mode))
-        return handle_error_prefix(ERRMSG_IS_DIR, filename, EISDIR);
+    if (S_ISDIR(stat->st_mode))
+        return handle_error_prefix(ERRMSG_IS_DIR, filename, EXIT_FAILURE);
 
-    if (details->file_stat.st_size < MIN_ELF_BYTES)
+    if (stat->st_size < MIN_ELF_BYTES)
         return handle_error_prefix(ERRMSG_NOTELF, filename, EXIT_FAILURE);
 
-    if ((details->file_start = mmap(0,
-                                    details->file_stat.st_size,
-                                    PROT_READ,
-                                    MAP_PRIVATE,
-                                    details->fd,
-                                    0)) == MAP_FAILED) {
-        return handle_error(ERRMSG_MMAP, errno);
+    if ((*file_start = mmap(0,
+                            stat->st_size,
+                            PROT_READ,
+                            MAP_PRIVATE,
+                            *fd,
+                            0)) == MAP_FAILED) {
+        return handle_error(ERRMSG_MMAP, EXIT_FAILURE);
     }
     return 0;
 }
 
-/* Checks file content and is it an elf file.
- * Then checks architecture and calls filling symbol table details 32/64 function to fill details :D
- * @argument details is struct defined in ft_nm.h
- *
- * @vartype Elf32/64_Ehdr = Elf file header
- * @vartype ehdr.e_ident contains magic number array of type uchar
- * @vartype ehdr.e_shoff is section header table file offset
- * @vartype ehdr.>e_shnum is sections number
- *
- * @return //FIXME add ret
- */
-static void fillHeadersAndSymbolTable(file_details_t *details) {
-    char *ptr = (char *) details->file_start;
+static int handleElf(void *file_start, const char *file_name, enum Sort sort, enum Display display) {
+    char *ptr = (char *) file_start;
+    int ret = EXIT_SUCCESS;
     if (ptr[0] == ELFMAG0 && ptr[1] == ELFMAG1
         && ptr[2] == ELFMAG2 && ptr[3] == ELFMAG3) {
 
-        Elf32_Ehdr *ehdr32 = details->ehdr32 = (Elf32_Ehdr *) ptr;
-        Elf64_Ehdr *ehdr64 = details->ehdr64 = (Elf64_Ehdr *) ptr;
+        Elf32_Ehdr *elf_header32 = (Elf32_Ehdr *) ptr;
+        Elf64_Ehdr *elf_header64 = (Elf64_Ehdr *) ptr;
+        symbol_table_info table_info;
 
-        details->shdr32 = (Elf32_Shdr *) (ptr + ehdr32->e_shoff);
-        details->shdr64 = (Elf64_Shdr *) (ptr + ehdr64->e_shoff);
-
-        if (ehdr32->e_ident[EI_CLASS] == ELFCLASS32) {
-            fillSymbolTable32(details);
-            details->table_det.is64bit = false;
-            ft_printf("32 bit elf binary\n"); //FIXME delete
-        } else if (ehdr64->e_ident[EI_CLASS] == ELFCLASS64) {
-            fillSymbolTable64(details);
-            details->table_det.is64bit = true;
-            ft_printf("64 bit elf binary\n"); //FIXME delete
+        if (elf_header32->e_ident[EI_CLASS] == ELFCLASS32) {
+            table_info.is64bit = false;
+        } else if (elf_header64->e_ident[EI_CLASS] == ELFCLASS64) {
+            table_info.is64bit = true;
+            ret = handle64(elf_header64, &table_info);
         } else {
-            ft_printf("unknown elf class\n"); //FIXME handle error
+            return handle_error_prefix(ERRMSG_FILEFORMAT, file_name, EXIT_FAILURE);
         }
+        if (ret == EXIT_SUCCESS) {
+            symbolSort(table_info.symbols, 0, (int) table_info.added_symbol_count - 1, sort);
+            print_symbols(&table_info, display);
+        }
+        for (size_t i = 0; table_info.symbols && i < table_info.added_symbol_count; i++) {
+            free(table_info.symbols[i]->name);
+            free(table_info.symbols[i]);
+        }
+        free(table_info.symbols);
     } else {
-        ft_printf("Not elf"); //FIXME handle error
+        return handle_error_prefix(ERRMSG_FILEFORMAT, file_name, EXIT_FAILURE);
     }
+    return ret;
+}
+
+int process_args(int ac, char **av, char **file_names, enum Sort *sort, enum Display *display) {
+    int files_count = 0;
+
+    for (int i = 1; i < ac; i++) {
+        size_t arg_len = ft_strlen(av[i]);
+        if (av[i][0] == '-' && arg_len > 1) {
+            for (size_t y = 1; y < arg_len; y++) {
+                if (av[i][y] == 'a') {
+                    if (DISPLAY_ALL > *display)
+                        *display = DISPLAY_ALL;
+                } else if (av[i][y] == 'g') {
+                    if (DISPLAY_EXTERNAL > *display)
+                        *display = DISPLAY_EXTERNAL;
+                } else if (av[i][y] == 'u') {
+                    if (DISPLAY_UNDEFINED > *display)
+                        *display = DISPLAY_UNDEFINED;
+                } else if (av[i][y] == 'r') {
+                    if (SORT_REVERSE > *sort)
+                        *sort = SORT_REVERSE;
+                } else if (av[i][y] == 'p') {
+                    if (SORT_NO > *sort)
+                        *sort = SORT_NO;
+                } else {
+                    PRINT_UNKNOWN_ARG_ERROR(av[i][y]);
+                    return -1;
+                }
+            }
+        } else
+            file_names[files_count++] = av[i];
+    }
+    return files_count;
 }
 
 int main(int ac, char **av) {
-    if (ac != 1 && ac != 2) {
-        ft_putendl_fd(ERRMSG_ARGS_COUNT, STDERR_FILENO);
-        return EXIT_FAILURE;
-    }
+    struct stat stat;
 
-    char *filename = ac == 1 ? "a.out" : av[1];
-    file_details_t details;
+    char *file_names[ac];
+    enum Sort sort = SORT_YES;
+    enum Display display = DISPLAY_NORM;
+    int fd = -1;
+    void *file_start = NULL;
+    int exit_code = 0;
 
-    int res = parseFileToDetails(filename, &details);
-    if (res != 0)
-        return res;
-    /*
-    printf("addr %p\n", details.file_start);
-    printf("file size %ldl\n", details.file_stat.st_size);
-    printf("file fd %d\n", details.fd);
-    */
+    int files_count = process_args(ac, av, file_names, &sort, &display);
 
-    fillHeadersAndSymbolTable(&details);
-
-    symbol_t symbols[details.table_det.symbols_number];
-    size_t addedSymbols = readSymbolTable(symbols, &details);
-
-
-    for (size_t i = 0; i < addedSymbols; i++) {
-        printf("  %03zu:\t%016lx\t%c\t\t%-40s\n", i, symbols[i].st_value,
-               get_symbol_type(&symbols[i]),
-               details.table_det.strtab + symbols[i].st_name);
-    }
-
-
-    //print_details(&details);
-
-    for (size_t i = 0; i < addedSymbols; i++)
-        free(symbols[i].symbol_name);
-    if (details.file_start != NULL)
-        munmap(details.file_start, details.file_stat.st_size);
-    if (details.fd > 2)
-        close(details.fd);
-    return EXIT_SUCCESS;
+    if (files_count >= 0) {
+        if (files_count == 0) {
+            files_count++;
+            file_names[0] = "a.out";
+        }
+        for (int i = 0; i < files_count; i++) {
+            if (openFile(file_names[i], &fd, &file_start, &stat) == 0) {
+                if (files_count > 1)
+                    ft_printf("\n%s:\n", file_names[i]);
+                if (handleElf(file_start, file_names[i], sort, display) == EXIT_FAILURE)
+                    exit_code++;
+                if (fd > 0)
+                    close(fd);
+                if (file_start != NULL)
+                    munmap(file_start, stat.st_size);
+            } else
+                exit_code++;
+        }
+    } else
+        exit_code++;
+    return exit_code;
 }
