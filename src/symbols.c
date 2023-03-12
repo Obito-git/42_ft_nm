@@ -1,14 +1,14 @@
 #include "ft_nm.h"
 
 static int ft_strcmp_ignore_underscore(const char *s1, const char *s2) {
-    const char *s1_mod = (ft_strlen(s1) && s1[0] == '_') ? ft_strtrim(s1, "_") : s1;
-    const char *s2_mod = (ft_strlen(s1) && s2[0] == '_') ? ft_strtrim(s2, "_") : s2;
-    int res = ft_strcmp_ignore_case(s1_mod, s2_mod);
-    if (s1 != s1_mod)
-        free((char *) s1_mod);
-    if (s2 != s2_mod)
-        free((char *) s2_mod);
-    return res;
+    const char *s1_mod;
+    const char *s2_mod;
+    size_t i;
+    for (i = 0; s1[i] == '_'; i++) ;
+    s1_mod = &s1[i];
+    for (i = 0; s2[i] == '_'; i++) ;
+    s2_mod = &s2[i];
+    return ft_strcmp_ignore_case(s1_mod, s2_mod);
 }
 
 void symbolSort(elf_symbol **arr, int low, int high, enum Sort sort) {
