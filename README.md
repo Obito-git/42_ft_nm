@@ -94,4 +94,3 @@ If lowercase, the symbol is usually local; if
 
            "?" The symbol type is unknown, or object file format specific.
 
-
