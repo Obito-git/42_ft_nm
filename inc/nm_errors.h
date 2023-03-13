@@ -31,10 +31,7 @@
   -p                     Do not sort the symbols\n\
   -r                     Reverse the sense of the sort\n\
   -u                     Display only undefined symbols\n\
-nm: supported targets: elf64-x86-64 elf32-i386 elf32-iamcu \
-elf32-x86-64 pei-i386 pe-x86-64 pei-x86-64 elf64-l1om elf64-k1om \
-elf64-little elf64-big elf32-little elf32-big pe-bigobj-x86-64 pe-i386 \
-srec symbolsrec verilog tekhex binary ihex plugin\n"
+nm: supported targets: elf-x86_32, elf-x64, object files, .so\n"
 
 #define PRINT_UNKNOWN_ARG_ERROR(arg) ft_fprintf(STDERR_FILENO, "%sinvalid option -- \'%c\'\n%s", NAME, (arg), FT_NM_USAGE)
 
