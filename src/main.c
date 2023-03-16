@@ -36,6 +36,7 @@ static int handleElf(void *file_start, const char *file_name, enum Sort sort, en
 
         if (elf_header32->e_ident[EI_CLASS] == ELFCLASS32) {
             table_info.is64bit = false;
+            ret = handle32(elf_header32, &table_info);
         } else if (elf_header64->e_ident[EI_CLASS] == ELFCLASS64) {
             table_info.is64bit = true;
             ret = handle64(elf_header64, &table_info);
@@ -44,7 +45,7 @@ static int handleElf(void *file_start, const char *file_name, enum Sort sort, en
         }
         if (ret == EXIT_SUCCESS) {
             symbolSort(table_info.symbols, 0, (int) table_info.added_symbol_count - 1, sort);
-            print_symbols(&table_info, display);
+            ret = print_symbols(&table_info, display);
         }
         for (size_t i = 0; table_info.symbols && i < table_info.added_symbol_count; i++) {
             free(table_info.symbols[i]->name);
@@ -57,7 +58,7 @@ static int handleElf(void *file_start, const char *file_name, enum Sort sort, en
     return ret;
 }
 
-int process_args(int ac, char **av, char **file_names, enum Sort *sort, enum Display *display) {
+static int process_args(int ac, char **av, char **file_names, enum Sort *sort, enum Display *display) {
     int files_count = 0;
 
     for (int i = 1; i < ac; i++) {

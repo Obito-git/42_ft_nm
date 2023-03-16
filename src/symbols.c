@@ -44,20 +44,39 @@ void symbolSort(elf_symbol **arr, int low, int high, enum Sort sort) {
     }
 }
 
-void print_symbols(const symbol_table_info *table_info, enum Display display) {
+static bool isCorrectType(const elf_symbol *symbol, enum Display display) {
+    if (display == DISPLAY_NORM || display == DISPLAY_ALL)
+        return true;
+    if (display == DISPLAY_UNDEFINED && ft_strchr("wU?", symbol->nm_type) != NULL)
+        return true;
+    if (display == DISPLAY_EXTERNAL && ft_strchr("TBUwWDR", symbol->nm_type) != NULL)
+        return true;
+    return false;
+}
+
+int print_symbols(const symbol_table_info *table_info, enum Display display) {
     for (size_t i = 0; i < table_info->added_symbol_count; i++) {
         elf_symbol **symbols = table_info->symbols;
-        if (symbols[i]->addr_val > 0) {
-            printf("%016lx %c %s\n", symbols[i]->addr_val,
-                   symbols[i]->nm_type,
-                   symbols[i]->name);
-        } else {
-            printf("%16s %c %s\n", "",
-                   symbols[i]->nm_type,
-                   symbols[i]->name);
+        if (isCorrectType(symbols[i], display)) {
+            char *hex_addr = ft_convert_base(symbols[i]->addr_val, "0123456789abcdef");
+            int max_len = table_info->is64bit ? HEX_64BIT_UINT_MAX_LEN : HEX_32BIT_UINT_MAX_LEN;
+            max_len -= (int) ft_strlen(hex_addr);
+            if (!hex_addr)
+                return handle_error_prefix("malloc error!", "convert to hex", EXIT_FAILURE);
+            if (symbols[i]->addr_val > 0) {
+                while (max_len-- > 0)
+                    ft_printf("0");
+                ft_printf("%s", hex_addr);
+            } else {
+                while (max_len-- > -1)
+                    ft_printf(" ");
+            }
+            ft_printf(" %c ", symbols[i]->nm_type);
+            ft_printf("%s\n", symbols[i]->name);
+            free(hex_addr);
         }
     }
-    (void) display;
+    return EXIT_SUCCESS;
 }
 
 static char type_by_section(uint32_t section_type, uint32_t section_flags) {

@@ -8,9 +8,10 @@
 #include <errno.h>
 #include <sys/stat.h>
 #include <sys/mman.h>
-#include <stdio.h> //FIXME DELETE
 
 #define MIN_ELF_BYTES 6 //FIXME find correct value
+#define HEX_64BIT_UINT_MAX_LEN 16
+#define HEX_32BIT_UINT_MAX_LEN 8
 
 enum Sort {SORT_YES, SORT_REVERSE, SORT_NO};
 enum Display {DISPLAY_NORM, DISPLAY_ALL, DISPLAY_EXTERNAL, DISPLAY_UNDEFINED};
@@ -35,15 +36,17 @@ typedef struct symbol_table_info {
 
 /* handle64.c */
 int handle64(Elf64_Ehdr *elf_header, symbol_table_info *symbol_table_info);
+int handle32(Elf32_Ehdr *elf_header, symbol_table_info *symbol_table_info);
 
 /* errors.c */
 int handle_error(const char *msg, int error_code);
 int handle_error_prefix(const char *msg, const char *prefixMsg, int error_code);
 
+/*  symbols.c*/
 char symbol_nm_type(unsigned char symbol_bind, unsigned char symbol_type, uint16_t symbol_shndx, uint32_t section_type,
                     uint32_t section_flags);
 void symbolSort(elf_symbol **arr, int low, int high, enum Sort sort);
-void print_symbols(const symbol_table_info *table_info, enum Display display);
+int print_symbols(const symbol_table_info *table_info, enum Display display);
 
 #endif //FT_NM_H
 

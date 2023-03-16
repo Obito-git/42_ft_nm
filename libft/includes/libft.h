@@ -81,7 +81,7 @@ long	ft_atol_sample(char *numb);
 char	*get_next_line(int fd);
 size_t	ft_numblen(long numb);
 char	*ft_itoa(long n);
-char	*ft_convert_base(unsigned long nbr, char *base);
+char	*ft_convert_base(u_int64_t nbr, const char *base);
 /* math/ */
 long	ft_pow(long nb, int power);
 /* lists/ */

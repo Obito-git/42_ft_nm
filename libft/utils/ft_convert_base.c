@@ -11,7 +11,7 @@
 /* ************************************************************************** */
 #include "libft.h"
 
-static size_t	ft_resultlen(unsigned long nbr, char *base)
+static size_t	ft_resultlen(u_int64_t nbr, const char *base)
 {
 	size_t	res_len;
 
@@ -24,7 +24,7 @@ static size_t	ft_resultlen(unsigned long nbr, char *base)
 	return (res_len);
 }
 
-static int	ft_base_check(char	*base)
+static int	ft_base_check(const char *base)
 {
 	int	i;
 	int	z;
@@ -48,7 +48,7 @@ static int	ft_base_check(char	*base)
 	return (1);
 }
 
-static char	*transform(unsigned long nbr, char *base)
+static char	*transform(u_int64_t nbr, const char *base)
 {
 	char	*res;
 	size_t	i;
@@ -68,7 +68,7 @@ static char	*transform(unsigned long nbr, char *base)
 	return (res);
 }
 
-char	*ft_convert_base(unsigned long nbr, char *base)
+char	*ft_convert_base(u_int64_t nbr, const char *base)
 {
 	if (!ft_base_check(base))
 		return (NULL);
