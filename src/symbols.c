@@ -1,14 +1,30 @@
 #include "ft_nm.h"
 
 static int ft_strcmp_ignore_underscore(const char *s1, const char *s2) {
-    const char *s1_mod;
-    const char *s2_mod;
-    size_t i;
-    for (i = 0; s1[i] == '_'; i++);
-    s1_mod = &s1[i];
-    for (i = 0; s2[i] == '_'; i++);
-    s2_mod = &s2[i];
-    return ft_strcmp_ignore_case(s1_mod, s2_mod);
+    int c1 = 0;
+    int c2 = 0;
+
+    if (!ft_strcmp("__do_global_dtors_aux_fini_array_entry", s1) || !ft_strcmp("__do_global_dtors_aux_fini_array_entry", s2))
+        ft_printf("");
+
+    if (!s1 && !s2)
+        return (0);
+    if (!s1 || !s2)
+        return (1);
+    while (*s1 && *s2)
+    {
+        while (!ft_isalnum(*s1))
+            s1++;
+        while (!ft_isalnum(*s2))
+            s2++;
+        c1 = ft_tolower((int) *s1);
+        c2 = ft_tolower((int) *s2);
+        if (c2 != c1)
+            return (c1 - c2);
+        ++s1;
+        ++s2;
+    }
+    return *s1 - *s2;
 }
 
 void symbolSort(elf_symbol **arr, int low, int high, enum Sort sort) {
@@ -25,9 +41,9 @@ void symbolSort(elf_symbol **arr, int low, int high, enum Sort sort) {
                 while (j >= low && ft_strcmp_ignore_underscore(arr[j]->name, arr[pivot]->name) > 0)
                     j--;
             } else {
-                while (i <= high && ft_strcmp_ignore_underscore(arr[i]->name, arr[pivot]->name) >= 0)
+                while (i <= high && ft_strcmp_ignore_underscore(arr[pivot]->name, arr[i]->name) < 0)
                     i++;
-                while (j >= low && ft_strcmp_ignore_underscore(arr[j]->name, arr[pivot]->name) < 0)
+                while (j > low && ft_strcmp_ignore_underscore(arr[pivot]->name, arr[j]->name) >= 0)
                     j--;
             }
             if (i < j) {
@@ -63,7 +79,7 @@ int print_symbols(const symbol_table_info *table_info, enum Display display) {
             max_len -= (int) ft_strlen(hex_addr);
             if (!hex_addr)
                 return handle_error_prefix("malloc error!", "convert to hex", EXIT_FAILURE);
-            if (symbols[i]->addr_val > 0) {
+            if (symbols[i]->addr_val > 0 || ft_tolower(symbols[i]->nm_type) == 'n' || ft_tolower(symbols[i]->nm_type) == 't') {
                 while (max_len-- > 0)
                     ft_printf("0");
                 ft_printf("%s", hex_addr);
@@ -123,7 +139,7 @@ char symbol_nm_type(unsigned char symbol_bind, unsigned char symbol_type, uint16
     if (res == '?')
         res = type_by_section(section_type, section_flags);
 
-    if (ft_strchr("?wWvVuUiIpNn", (int) res) != NULL)
+    if (ft_strchr("?wWvVuUiIp", (int) res) != NULL)
         return res;
     if (symbol_bind == STB_LOCAL)
         res = (char) ft_tolower(res);
