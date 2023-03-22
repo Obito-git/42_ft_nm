@@ -10,17 +10,9 @@
 #define ERRMSG_FSTAT "Error. Can't execute fstat\n"
 #define ERRMSG_MMAP "mmap(2) failure. exiting...\n"
 #define ERRMSG_NOTELF "Error. You must provide an elf file\n"
-#define ERRMSG_FILEFORMAT "file format not recognized"
-#define ERRMSG_MALLOC "malloc error. Can't allocate memory"
-#define ERRMSG_NOSYMTAB "symtab is not found in elf"
-
-
-
-#define ERRMSG_CLOSE_FILE(path) (path ": error: Can't close this file")
-
-#define ERRORMSG_MUNMAP "munmap(2) failure. exiting..."
-
-
+#define ERRMSG_FILEFORMAT "file format not recognized\n"
+#define ERRMSG_MALLOC "malloc error. Can't allocate memory\n"
+#define ERRMSG_NOSYMTAB "no symbols or file format not recognized\n"
 
 
 #define FT_NM_USAGE "Usage: nm [option(s)] [file(s)]\n\

@@ -24,40 +24,6 @@ static int openFile(char *filename, int *fd, void **file_start, struct stat *sta
     return 0;
 }
 
-static int handleElf(void *file_start, const char *file_name, enum Sort sort, enum Display display) {
-    char *ptr = (char *) file_start;
-    int ret = EXIT_SUCCESS;
-    if (ptr[0] == ELFMAG0 && ptr[1] == ELFMAG1
-        && ptr[2] == ELFMAG2 && ptr[3] == ELFMAG3) {
-
-        Elf32_Ehdr *elf_header32 = (Elf32_Ehdr *) ptr;
-        Elf64_Ehdr *elf_header64 = (Elf64_Ehdr *) ptr;
-        symbol_table_info table_info;
-
-        if (elf_header32->e_ident[EI_CLASS] == ELFCLASS32) {
-            table_info.is64bit = false;
-            ret = handle32(elf_header32, &table_info);
-        } else if (elf_header64->e_ident[EI_CLASS] == ELFCLASS64) {
-            table_info.is64bit = true;
-            ret = handle64(elf_header64, &table_info);
-        } else {
-            return handle_error_prefix(ERRMSG_FILEFORMAT, file_name, EXIT_FAILURE);
-        }
-        if (ret == EXIT_SUCCESS) {
-            symbolSort(table_info.symbols, 0, (int) table_info.added_symbol_count - 1, sort);
-            ret = print_symbols(&table_info, display);
-        }
-        for (size_t i = 0; table_info.symbols && i < table_info.added_symbol_count; i++) {
-            free(table_info.symbols[i]->name);
-            free(table_info.symbols[i]);
-        }
-        free(table_info.symbols);
-    } else {
-        return handle_error_prefix(ERRMSG_FILEFORMAT, file_name, EXIT_FAILURE);
-    }
-    return ret;
-}
-
 static int process_args(int ac, char **av, char **file_names, enum Sort *sort, enum Display *display) {
     int files_count = 0;
 
@@ -110,9 +76,7 @@ int main(int ac, char **av) {
         }
         for (int i = 0; i < files_count; i++) {
             if (openFile(file_names[i], &fd, &file_start, &stat) == 0) {
-                if (files_count > 1)
-                    ft_printf("\n%s:\n", file_names[i]);
-                if (handleElf(file_start, file_names[i], sort, display) == EXIT_FAILURE)
+                if (handleElf(file_start, file_names[i], files_count > 1, sort, display) == EXIT_FAILURE)
                     exit_code++;
                 if (fd > 0)
                     close(fd);
