@@ -40,6 +40,8 @@ int	ft_printf(const char *s, ...)
 	char	*cpy;
 
 	cpy = ft_strdup(s);
+    if (!cpy)
+        return 0;
 	va_start(args, s);
 	len = parse(STDOUT_FILENO, &args, cpy);
 	va_end(args);
@@ -54,6 +56,8 @@ int	ft_fprintf(int fd, const char *s, ...)
     char	*cpy;
 
     cpy = ft_strdup(s);
+    if (!cpy)
+        return 0;
     va_start(args, s);
     len = parse(fd, &args, cpy);
     va_end(args);

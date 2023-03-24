@@ -35,8 +35,10 @@ int handle32(Elf32_Ehdr *elf_header, symbol_table_info *symbol_table_info, const
             symbol_table_info->symbols_number = section_header[i].sh_size / sizeof(Elf32_Sym);
             if (!(symbol_table_info->symbols = malloc(sizeof(elf_symbol *) * symbol_table_info->symbols_number)))
                 return handle_error_prefix(ERRMSG_MALLOC, "elf_symbol*: ", EXIT_FAILURE);
-            if (!(symbol_table_info->noname_symb = malloc(sizeof(elf_symbol *) * symbol_table_info->symbols_number)))
+            if (!(symbol_table_info->noname_symb = malloc(sizeof(elf_symbol *) * symbol_table_info->symbols_number))) {
+                free(symbol_table_info->symbols);
                 return handle_error_prefix(ERRMSG_MALLOC, "elf_symbol*: ", EXIT_FAILURE);
+            }
             return read_symbol_table32(symbol_table_info);
         }
     }
