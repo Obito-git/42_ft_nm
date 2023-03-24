@@ -18,10 +18,8 @@
 #define FT_NM_USAGE "Usage: nm [option(s)] [file(s)]\n\
  List symbols in [file(s)] (a.out by default).\n\
  The options are:\n\
-  -a                     Display debugger-only symbols\n\
   -g                     Display only external symbols\n\
   -p                     Do not sort the symbols\n\
-  -r                     Reverse the sense of the sort\n\
   -u                     Display only undefined symbols\n\
 nm: supported targets: elf-x86_32, elf-x64, object files, .so\n"
 
