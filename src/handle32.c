@@ -14,7 +14,7 @@ static int read_symbol_table32(symbol_table_info *table_info) {
                                                  type);
             if (!symbol)
                 return handle_error_prefix(ERRMSG_MALLOC, "elf_symbol: ", EXIT_FAILURE);
-            if (!ft_strlen(symbol->name) && table_info->sort != SORT_NO)
+            if (!ft_strlen(symbol->name))
                 table_info->noname_symb[table_info->added_noname_count++] = symbol;
             else
                 table_info->symbols[table_info->added_symbol_count++] = symbol;

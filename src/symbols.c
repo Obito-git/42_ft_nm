@@ -22,7 +22,7 @@ static char get_type_by_section(uint32_t section_type, uint32_t section_flags) {
     if ((section_flags & (SHF_ALLOC | SHF_EXECINSTR | SHF_WRITE)) == (SHF_ALLOC | SHF_WRITE))
         return (section_flags & SHF_IA_64_SHORT) ? 'G' : 'D';
     if (section_flags == 0)
-        return 'N';
+        return 'n';
     if ((section_flags & (SHF_ALLOC | SHF_EXECINSTR | SHF_WRITE)) == (SHF_ALLOC | SHF_EXECINSTR))
         return 'T';
     return '?';

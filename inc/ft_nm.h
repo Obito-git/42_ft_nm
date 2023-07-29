@@ -12,9 +12,7 @@
 #define MIN_ELF_BYTES 6 //FIXME find correct value
 #define HEX_64BIT_UINT_MAX_LEN 16
 #define HEX_32BIT_UINT_MAX_LEN 8
-
-enum Sort {SORT_YES, SORT_REVERSE, SORT_NO};
-enum Display {DISPLAY_NORM, DISPLAY_ALL, DISPLAY_EXTERNAL, DISPLAY_UNDEFINED};
+#define DEFAULT_FILE_NAME "a.out"
 
 /* printed symbol data */
 typedef struct elf_symbol {
@@ -24,8 +22,6 @@ typedef struct elf_symbol {
 } elf_symbol;
 
 typedef struct symbol_table_info {
-    enum Sort     sort;                  /* sort type */
-    enum Display  display;               /* display type */
     bool          is64bit;               /* architecture */
     void          *symtab;               /* pointer to symbol table */
     void          *section_header_start; /* pointer to the first section */
@@ -38,7 +34,7 @@ typedef struct symbol_table_info {
 } symbol_table_info;
 
 /* handleAll.c */
-int handleElf(void *file_start, const char *file_name, bool print_name, enum Sort sort, enum Display display);
+int handleElf(void *file_start, const char *file_name, bool print_name);
 
 /* handle64.c */
 int handle64(Elf64_Ehdr *elf_header, symbol_table_info *symbol_table_info, const char *filename);
@@ -56,7 +52,7 @@ char get_nm_symbol_type(unsigned char symbol_bind, unsigned char symbol_type, ui
                         uint32_t section_flags);
 
 /* sort.c */
-void symbolSort(elf_symbol **arr, int low, int high, enum Sort sort);
+void symbolSort(elf_symbol **arr, int low, int high);
 
 /* print.c */
 int print_symbols(const symbol_table_info *table_info, const char *filename, bool print_name);

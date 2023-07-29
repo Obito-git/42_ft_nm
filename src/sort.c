@@ -36,25 +36,22 @@ static int ft_strcmp_ignore_underscore(const char *s1, const char *s2) {
     return *s1 - *s2;
 }
 
-void symbolSort(elf_symbol **arr, int low, int high, enum Sort sort) {
+void symbolSort(elf_symbol **arr, int low, int high) {
     int pivot, i, j;
     elf_symbol temp;
-    if (sort != SORT_NO && low < high) {
+    if (low < high) {
         pivot = low;
         i = low;
         j = high;
         while (i < j) {
-            if (sort == SORT_YES) {
-                while (i <= high && ft_strcmp_ignore_underscore(arr[i]->name, arr[pivot]->name) <= 0)
-                    i++;
-                while (j >= low && ft_strcmp_ignore_underscore(arr[j]->name, arr[pivot]->name) > 0)
-                    j--;
-            } else {
-                while (i <= high && ft_strcmp_ignore_underscore(arr[pivot]->name, arr[i]->name) <= 0)
-                    i++;
-                while (j > low && ft_strcmp_ignore_underscore(arr[pivot]->name, arr[j]->name) > 0)
-                    j--;
-            }
+            while (i <= high && (ft_strcmp_ignore_underscore(arr[i]->name, arr[pivot]->name) < 0 ||
+                                 (ft_strcmp_ignore_underscore(arr[i]->name, arr[pivot]->name) == 0 &&
+                                  arr[i]->addr_val <= arr[pivot]->addr_val)))
+                i++;
+            while (j >= low && (ft_strcmp_ignore_underscore(arr[j]->name, arr[pivot]->name) > 0 ||
+                                (ft_strcmp_ignore_underscore(arr[j]->name, arr[pivot]->name) == 0 &&
+                                 arr[j]->addr_val > arr[pivot]->addr_val)))
+                j--;
             if (i < j) {
                 temp = *arr[i];
                 *arr[i] = *arr[j];
@@ -64,7 +61,12 @@ void symbolSort(elf_symbol **arr, int low, int high, enum Sort sort) {
         temp = *arr[j];
         *arr[j] = *arr[pivot];
         *arr[pivot] = temp;
-        symbolSort(arr, low, j - 1, sort);
-        symbolSort(arr, j + 1, high, sort);
+        symbolSort(arr, low, j - 1);
+        symbolSort(arr, j + 1, high);
     }
 }
+
+
+
+
+
